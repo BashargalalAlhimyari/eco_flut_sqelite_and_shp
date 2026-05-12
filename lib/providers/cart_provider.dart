@@ -1,73 +1,55 @@
-import 'package:flutter/material.dart';
-import '../models/product.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter_application_2/dataSourse/local_storage/products_local_storage.dart';
+import 'package:flutter_application_2/models/product.dart';
 
-// كلاس مساعد لتمثيل عنصر داخل السلة (يحتوي على المنتج والكمية)
-class CartItem {
-  final String id;
-  final Product product;
-  int quantity;
+class CartProvider extends ChangeNotifier {
+  final ProductsLocalDataSource localDataSource;
 
-  CartItem({
-    required this.id,
-    required this.product,
-    this.quantity = 1,
-  });
-}
-
-class CartProvider with ChangeNotifier {
-  // نستخدم Map لسهولة البحث عن المنتج وتحديث كميته
-  final Map<String, CartItem> _items = {};
-
-  Map<String, CartItem> get items => {..._items};
-
-  // 🔢 حساب عدد المنتجات في السلة (لعرضه على الأيقونة)
-  int get itemCount {
-    return _items.length;
+  CartProvider({required this.localDataSource}) {
+    _loadCart(); // تحميل السلة عند تشغيل التطبيق
   }
 
-  // 💰 حساب السعر الإجمالي للسلة
-  double get totalAmount {
-    double total = 0.0;
-    _items.forEach((key, cartItem) {
-      total += cartItem.product.price * cartItem.quantity;
+  // استخدمنا Map هنا لتسهيل زيادة الكمية بناءً على ID المنتج
+  final Map<int, ProductModel> _cartItems = {};
+
+  List<ProductModel> get cartItems => _cartItems.values.toList();
+
+  // جلب البيانات من Hive
+  Future<void> _loadCart() async {
+    try {
+      final cachedItems = await localDataSource.getCachedCartItems();
+      for (var item in cachedItems) {
+        _cartItems[item.id] = item;
+      }
+      notifyListeners();
+    } catch (e) {
+      debugPrint("السلة فارغة حالياً");
+    }
+  }
+
+  // إضافة للسلة وحفظ في Hive
+  void addToCart(ProductModel product) async {
+    _cartItems[product.id] = product;
+    
+    // حفظ القائمة المحدثة في Hive
+    await localDataSource.cacheCartItems(_cartItems.values.toList());
+    
+    notifyListeners();
+  }
+
+  // حذف من السلة وتحديث Hive
+  void removeFromCart(int productId) async {
+    _cartItems.remove(productId);
+    await localDataSource.cacheCartItems(_cartItems.values.toList());
+    notifyListeners();
+  }
+
+  // حساب الإجمالي
+  double get totalPrice {
+    double total = 0;
+    _cartItems.forEach((key, product) {
+      total += product.price;
     });
     return total;
-  }
-
-  // 🛒 إضافة منتج للسلة
-  void addToCart(Product product) {
-    if (_items.containsKey(product.id)) {
-      // إذا كان المنتج موجوداً مسبقاً، نزيد الكمية
-      _items.update(
-        product.id,
-        (existingItem) => CartItem(
-          id: existingItem.id,
-          product: existingItem.product,
-          quantity: existingItem.quantity + 1,
-        ),
-      );
-    } else {
-      // إذا كان منتجاً جديداً، نضيفه للسلة
-      _items.putIfAbsent(
-        product.id,
-        () => CartItem(
-          id: DateTime.now().toString(),
-          product: product,
-        ),
-      );
-    }
-    notifyListeners(); // 📢 تحديث الشاشات التي تستمع لهذا البروفايدر
-  }
-
-  // 🗑️ حذف منتج من السلة
-  void removeItem(String productId) {
-    _items.remove(productId);
-    notifyListeners();
-  }
-
-  // تفريغ السلة بالكامل
-  void clearCart() {
-    _items.clear();
-    notifyListeners();
   }
 }

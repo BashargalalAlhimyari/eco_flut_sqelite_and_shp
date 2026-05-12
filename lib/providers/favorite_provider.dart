@@ -1,28 +1,46 @@
-import 'package:flutter/material.dart';
-import '../models/product.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter_application_2/dataSourse/local_storage/products_local_storage.dart';
+import 'package:flutter_application_2/models/product.dart';
 
-class FavoritesProvider with ChangeNotifier {
-  // قائمة المنتجات المفضلة
-  final List<Product> _favoriteItems = [];
+class FavoritesProvider extends ChangeNotifier {
+  final ProductsLocalDataSource localDataSource; // حقن التبعية هنا
 
-  List<Product> get favoriteItems => [..._favoriteItems];
+  FavoritesProvider({required this.localDataSource}) {
+    _loadFavorites(); // جلب البيانات من Hive فور تشغيل البروفايدر
+  }
 
-  // ❤️ إضافة أو إزالة منتج من المفضلة
-  void toggleFavorite(Product product) {
-    final existingIndex = _favoriteItems.indexWhere((prod) => prod.id == product.id);
-    
-    if (existingIndex >= 0) {
-      // إذا كان موجوداً، نقوم بإزالته
-      _favoriteItems.removeAt(existingIndex);
-    } else {
-      // إذا لم يكن موجوداً، نضيفه
-      _favoriteItems.add(product);
+  List<ProductModel> _favoriteProducts = [];
+
+  List<ProductModel> get favoriteProducts => _favoriteProducts;
+
+  // 1. دالة لجلب البيانات من التخزين المحلي عند فتح التطبيق
+  Future<void> _loadFavorites() async {
+    try {
+      _favoriteProducts = await localDataSource.getCachedFavorites(); // دالة سنضيفها في الـ LocalDataSource
+      notifyListeners();
+    } catch (e) {
+      _favoriteProducts = [];
     }
-    notifyListeners(); // 📢 تحديث الشاشات
   }
 
-  // 🔍 التحقق مما إذا كان المنتج في المفضلة (لتغيير لون أيقونة القلب)
-  bool isFavorite(String productId) {
-    return _favoriteItems.any((prod) => prod.id == productId);
+  bool isFavorite(int productId) {
+    return _favoriteProducts.any((p) => p.id == productId);
   }
+
+  // 2. تعديل دالة التبديل لحفظ التغييرات في Hive فوراً
+  void toggleFavorite(ProductModel product) async {
+    final index = _favoriteProducts.indexWhere((p) => p.id == product.id);
+    if (index >= 0) {
+      _favoriteProducts.removeAt(index);
+    } else {
+      _favoriteProducts.add(product);
+    }
+    
+    // حفظ القائمة الجديدة كاملة في Hive
+    await localDataSource.cacheFavorites(_favoriteProducts); 
+    
+    notifyListeners();
+  }
+
+  
 }

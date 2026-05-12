@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_2/models/product.dart';
+import 'package:flutter_application_2/providers/cart_provider.dart';
+import 'package:flutter_application_2/providers/favorite_provider.dart';
 import 'package:flutter_application_2/screens/product_details.dart';
-import '../models/product.dart';
+import 'package:provider/provider.dart';
 
 class ProductCard extends StatelessWidget {
-  final Product product;
-  
-  // قمنا بحذف المتغير onTap لأننا سنبرمج الانتقال داخلياً
+  final ProductModel product;
 
   const ProductCard({
     Key? key,
@@ -17,58 +18,108 @@ class ProductCard extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Card(
+      elevation: 2,
+      shadowColor: theme.shadowColor.withOpacity(0.3),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
-        // 🚀 برمجة الانتقال إلى شاشة التفاصيل عند الضغط
         onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => ProductDetailsScreen(product: product),
-            ),
-          );
+          Navigator.push(context, MaterialPageRoute(builder: (_) => ProductDetailsScreen(product: product)));
         },
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Stack(
           children: [
-            // 🌟 صورة المنتج مع Hero Animation
-            Expanded(
-              child: Hero(
-                tag: product.id, 
-                child: Image.network(
-                  product.imageUrl,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                  loadingBuilder: (context, child, loadingProgress) {
-                    if (loadingProgress == null) return child;
-                    return const Center(child: CircularProgressIndicator());
-                  },
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // --- صورة المنتج ---
+                Expanded(
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    color: Colors.white, // خلفية بيضاء لتناسب صور الـ API
+                    child: Hero(
+                      tag: 'product_${product.id}',
+                      child: Image.network(
+                        product.image,
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+                  ),
                 ),
-              ),
+
+                // --- تفاصيل المنتج ---
+                Padding(
+                  padding: const EdgeInsets.all(10.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        product.title,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          height: 1.2,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 6),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            '${product.price.toStringAsFixed(2)} \$',
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              color: theme.colorScheme.primary,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                          // زر إضافة سريعة للسلة
+                          GestureDetector(
+                            onTap: () {
+                              context.read<CartProvider>().addToCart(product);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text("تمت الإضافة للسلة"),
+                                  duration: Duration(seconds: 1),
+                                ),
+                              );
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: BoxDecoration(
+                                color: theme.colorScheme.primary,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Icon(Icons.add, color: Colors.white, size: 20),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-            // 📝 تفاصيل المنتج (الاسم والسعر)
-            Padding(
-              padding: const EdgeInsets.all(12.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    product.name,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
+
+            // --- زر المفضلة (تم وضعه فوق الصورة) ---
+            Positioned(
+              top: 5,
+              right: 5,
+              child: Consumer<FavoritesProvider>(
+                builder: (context, favProvider, _) {
+                  final isFav = favProvider.isFavorite(product.id);
+                  return IconButton(
+                    icon: CircleAvatar(
+                      backgroundColor: theme.colorScheme.surface.withOpacity(0.8),
+                      child: Icon(
+                        isFav ? Icons.favorite : Icons.favorite_border,
+                        color: isFav ? Colors.red : theme.hintColor,
+                        size: 20,
+                      ),
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis, 
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '${product.price} ريال',
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      color: theme.primaryColor,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                ],
+                    onPressed: () => favProvider.toggleFavorite(product),
+                  );
+                },
               ),
             ),
           ],
