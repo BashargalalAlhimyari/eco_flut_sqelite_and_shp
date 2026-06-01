@@ -22,6 +22,9 @@ class ProductModel {
   @HiveField(5)
   final String image;
 
+  // Non-Hive field, defaults to 1, used for SQLite cart quantities
+  final int quantity;
+
   ProductModel({
     required this.id,
     required this.title,
@@ -29,6 +32,7 @@ class ProductModel {
     required this.description,
     required this.category,
     required this.image,
+    this.quantity = 1,
   });
 
   // من Firestore إلى كائن Dart
@@ -40,6 +44,7 @@ class ProductModel {
       description: doc['description'] ?? '',
       category: doc['category'] ?? '',
       image: doc['image'] ?? '',
+      quantity: 1,
     );
   }
 
@@ -61,5 +66,47 @@ class ProductModel {
       'category': category,
       'image': image,
     };
+  }
+
+  ProductModel copyWith({
+    String? id,
+    String? title,
+    double? price,
+    String? description,
+    String? category,
+    String? image,
+    int? quantity,
+  }) {
+    return ProductModel(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      price: price ?? this.price,
+      description: description ?? this.description,
+      category: category ?? this.category,
+      image: image ?? this.image,
+      quantity: quantity ?? this.quantity,
+    );
+  }
+
+  Map<String, dynamic> toSqliteMap() {
+    return {
+      'id': id,
+      'title': title,
+      'price': price,
+      'image': image,
+      'quantity': quantity,
+    };
+  }
+
+  factory ProductModel.fromSqliteMap(Map<String, dynamic> map) {
+    return ProductModel(
+      id: map['id'] as String,
+      title: map['title'] as String,
+      price: (map['price'] as num).toDouble(),
+      image: map['image'] as String,
+      description: '',
+      category: '',
+      quantity: map['quantity'] as int? ?? 1,
+    );
   }
 }

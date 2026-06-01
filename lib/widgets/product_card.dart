@@ -15,14 +15,18 @@ class ProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE5E5E5), width: 0.8),
+        border: Border.all(
+          color: isDark ? Colors.white10 : const Color(0xFFE5E5E5),
+          width: 0.8,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withOpacity(isDark ? 0.2 : 0.03),
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),
@@ -109,10 +113,10 @@ class ProductCard extends StatelessWidget {
                 children: [
                   Text(
                     product.title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: Color(0xFF181818),
+                      color: Theme.of(context).colorScheme.onSurface,
                       height: 1.3,
                     ),
                     maxLines: 2,

@@ -11,8 +11,8 @@ class ProductDetailsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F4F7),
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -40,16 +40,16 @@ class ProductDetailsScreen extends StatelessWidget {
                   Container(
                     height: 380,
                     width: double.infinity,
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.vertical(
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF2C2C2C) : Colors.white,
+                      borderRadius: const BorderRadius.vertical(
                         bottom: Radius.circular(24),
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black12,
+                          color: Colors.black.withOpacity(isDark ? 0.3 : 0.1),
                           blurRadius: 8,
-                          offset: Offset(0, 4),
+                          offset: const Offset(0, 4),
                         ),
                       ],
                     ),
@@ -76,7 +76,7 @@ class ProductDetailsScreen extends StatelessWidget {
                             height: 48,
                             width: 48,
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: Theme.of(context).colorScheme.surface,
                               shape: BoxShape.circle,
                               boxShadow: [
                                 BoxShadow(
@@ -109,9 +109,12 @@ class ProductDetailsScreen extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: Theme.of(context).colorScheme.surface,
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: const Color(0xFFE5E5E5), width: 0.8),
+                        border: Border.all(
+                          color: isDark ? Colors.white10 : const Color(0xFFE5E5E5),
+                          width: 0.8,
+                        ),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -127,10 +130,10 @@ class ProductDetailsScreen extends StatelessWidget {
                           const SizedBox(height: 8),
                           Text(
                             product.title,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF181818),
+                              color: Theme.of(context).colorScheme.onSurface,
                               height: 1.4,
                             ),
                           ),
@@ -143,33 +146,46 @@ class ProductDetailsScreen extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: Theme.of(context).colorScheme.surface,
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: const Color(0xFFE5E5E5), width: 0.8),
+                        border: Border.all(
+                          color: isDark ? Colors.white10 : const Color(0xFFE5E5E5),
+                          width: 0.8,
+                        ),
                       ),
                       child: Column(
                         children: [
                           Row(
-                            children: const [
-                              Icon(Icons.star, color: Color(0xFFFF9E00), size: 18),
-                              SizedBox(width: 6),
+                            children: [
+                              const Icon(Icons.star, color: Color(0xFFFF9E00), size: 18),
+                              const SizedBox(width: 6),
                               Text(
                                 "4.8",
-                                style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF181818)),
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Theme.of(context).colorScheme.onSurface,
+                                ),
                               ),
-                              SizedBox(width: 12),
-                              Text(
+                              const SizedBox(width: 12),
+                              const Text(
                                 "150 مراجعة",
                                 style: TextStyle(color: Colors.grey, fontSize: 13),
                               ),
-                              Spacer(),
-                              Text(
+                              const Spacer(),
+                              const Text(
                                 "التقييمات والمراجعات",
-                                style: TextStyle(color: Color(0xFFFF6A00), fontSize: 13, fontWeight: FontWeight.bold),
+                                style: TextStyle(
+                                  color: Color(0xFFFF6A00),
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               )
                             ],
                           ),
-                          const Divider(height: 20, color: Color(0xFFEEEEEE)),
+                          Divider(
+                            height: 20,
+                            color: isDark ? Colors.white10 : const Color(0xFFEEEEEE),
+                          ),
                           Row(
                             children: const [
                               Icon(Icons.local_shipping_outlined, color: Colors.green, size: 18),
@@ -189,27 +205,32 @@ class ProductDetailsScreen extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: Theme.of(context).colorScheme.surface,
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: const Color(0xFFE5E5E5), width: 0.8),
+                        border: Border.all(
+                          color: isDark ? Colors.white10 : const Color(0xFFE5E5E5),
+                          width: 0.8,
+                        ),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             'تفاصيل المنتج 📄',
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF181818),
+                              color: Theme.of(context).colorScheme.onSurface,
                             ),
                           ),
                           const SizedBox(height: 10),
                           Text(
                             product.description,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 14,
-                              color: Color(0xFF555555),
+                              color: Theme.of(context).brightness == Brightness.dark
+                                  ? Colors.white70
+                                  : const Color(0xFF555555),
                               height: 1.6,
                             ),
                           ),
@@ -229,10 +250,10 @@ class ProductDetailsScreen extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: Theme.of(context).colorScheme.surface,
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.06),
+                color: Colors.black.withOpacity(isDark ? 0.2 : 0.06),
                 blurRadius: 10,
                 offset: const Offset(0, -3),
               ),

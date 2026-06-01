@@ -8,7 +8,6 @@ class CartScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F4F7),
       appBar: AppBar(
         title: const Text('سلة المشتريات'),
         centerTitle: true,
@@ -45,16 +44,17 @@ class CartScreen extends StatelessWidget {
   }
 
   Widget _buildCartItem(BuildContext context, dynamic product, CartProvider provider) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE5E5E5), width: 0.8),
+        border: Border.all(color: isDark ? Colors.white10 : const Color(0xFFE5E5E5), width: 0.8),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: Colors.black.withOpacity(isDark ? 0.2 : 0.02),
             blurRadius: 6,
             offset: const Offset(0, 3),
           ),
@@ -84,10 +84,10 @@ class CartScreen extends StatelessWidget {
                   product.title,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: Color(0xFF181818),
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
                 const SizedBox(height: 6),
@@ -100,25 +100,25 @@ class CartScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 8),
-                // التحكم بالكمية الافتراضية
+                // التحكم بالكمية
                 Row(
                   children: [
-                    _buildQuantityBtn(Icons.remove, () {
-                      // منطق إنقاص افتراضي أو إرشاد
+                    _buildQuantityBtn(context, Icons.remove, () {
+                      provider.decrementQuantity(product.id);
                     }),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 14),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 14),
                       child: Text(
-                        '1',
+                        '${product.quantity}',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 14,
-                          color: Color(0xFF181818),
+                          color: Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
                     ),
-                    _buildQuantityBtn(Icons.add, () {
-                      // منطق زيادة افتراضي أو إرشاد
+                    _buildQuantityBtn(context, Icons.add, () {
+                      provider.incrementQuantity(product.id);
                     }),
                   ],
                 ),
@@ -151,31 +151,33 @@ class CartScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildQuantityBtn(IconData icon, VoidCallback onTap) {
+  Widget _buildQuantityBtn(BuildContext context, IconData icon, VoidCallback onTap) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(6),
       child: Container(
         padding: const EdgeInsets.all(4),
         decoration: BoxDecoration(
-          color: const Color(0xFFF4F4F7),
+          color: isDark ? const Color(0xFF2C2C2C) : const Color(0xFFF4F4F7),
           borderRadius: BorderRadius.circular(6),
-          border: Border.all(color: const Color(0xFFE0E0E0), width: 0.8),
+          border: Border.all(color: isDark ? Colors.white12 : const Color(0xFFE0E0E0), width: 0.8),
         ),
-        child: Icon(icon, size: 14, color: const Color(0xFF555555)),
+        child: Icon(icon, size: 14, color: isDark ? Colors.white70 : const Color(0xFF555555)),
       ),
     );
   }
 
   Widget _buildCheckoutSection(BuildContext context, CartProvider provider) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
+            color: Colors.black.withOpacity(isDark ? 0.2 : 0.06),
             blurRadius: 10,
             offset: const Offset(0, -3),
           ),
@@ -188,12 +190,12 @@ class CartScreen extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
+                Text(
                   'المجموع الكلي',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF181818),
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
                 Text(
@@ -254,8 +256,8 @@ class CartScreen extends StatelessWidget {
           children: [
             Container(
               padding: const EdgeInsets.all(24),
-              decoration: const BoxDecoration(
-                color: Colors.white,
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface,
                 shape: BoxShape.circle,
               ),
               child: const Icon(
@@ -265,12 +267,12 @@ class CartScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 24),
-            const Text(
+            Text(
               'سلة المشتريات فارغة!',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF181818),
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
             const SizedBox(height: 8),

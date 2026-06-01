@@ -16,31 +16,63 @@ class CartProvider extends ChangeNotifier {
   Future<void> _loadCart() async {
     try {
       final cachedItems = await localDataSource.getCachedCartItems();
+      _cartItems.clear();
       for (var item in cachedItems) {
         _cartItems[item.id] = item;
       }
       notifyListeners();
     } catch (e) {
-      debugPrint("السلة فارغة حالياً");
+      debugPrint("السلة فارغة حالياً: $e");
     }
   }
 
   void addToCart(ProductModel product) async {
-    _cartItems[product.id] = product;
+    if (_cartItems.containsKey(product.id)) {
+      final existingItem = _cartItems[product.id]!;
+      _cartItems[product.id] = existingItem.copyWith(quantity: existingItem.quantity + 1);
+    } else {
+      _cartItems[product.id] = product.copyWith(quantity: 1);
+    }
     await localDataSource.cacheCartItems(_cartItems.values.toList());
     notifyListeners();
   }
 
+  void updateQuantity(String productId, int quantity) async {
+    if (_cartItems.containsKey(productId)) {
+      if (quantity <= 0) {
+        removeFromCart(productId);
+      } else {
+        _cartItems[productId] = _cartItems[productId]!.copyWith(quantity: quantity);
+        await localDataSource.cacheCartItems(_cartItems.values.toList());
+        notifyListeners();
+      }
+    }
+  }
+
+  void incrementQuantity(String productId) {
+    if (_cartItems.containsKey(productId)) {
+      updateQuantity(productId, _cartItems[productId]!.quantity + 1);
+    }
+  }
+
+  void decrementQuantity(String productId) {
+    if (_cartItems.containsKey(productId)) {
+      updateQuantity(productId, _cartItems[productId]!.quantity - 1);
+    }
+  }
+
   void removeFromCart(String productId) async {
-    _cartItems.remove(productId);
-    await localDataSource.cacheCartItems(_cartItems.values.toList());
-    notifyListeners();
+    if (_cartItems.containsKey(productId)) {
+      _cartItems.remove(productId);
+      await localDataSource.cacheCartItems(_cartItems.values.toList());
+      notifyListeners();
+    }
   }
 
   double get totalPrice {
     double total = 0;
     _cartItems.forEach((key, product) {
-      total += product.price;
+      total += product.price * product.quantity;
     });
     return total;
   }

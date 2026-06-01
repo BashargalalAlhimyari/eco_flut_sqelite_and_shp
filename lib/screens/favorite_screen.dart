@@ -12,7 +12,6 @@ class FavoritesScreen extends StatelessWidget {
     final int crossAxisCount = screenWidth > 900 ? 4 : (screenWidth > 600 ? 3 : 2);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F4F7),
       appBar: AppBar(
         title: const Text('المفضلة'),
         centerTitle: true,
@@ -32,8 +31,8 @@ class FavoritesScreen extends StatelessWidget {
                     children: [
                       Container(
                         padding: const EdgeInsets.all(24),
-                        decoration: const BoxDecoration(
-                          color: Colors.white,
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.surface,
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(
@@ -43,12 +42,12 @@ class FavoritesScreen extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 24),
-                      const Text(
+                      Text(
                         'قائمة المفضلة فارغة حالياً',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF181818),
+                          color: Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
                       const SizedBox(height: 8),

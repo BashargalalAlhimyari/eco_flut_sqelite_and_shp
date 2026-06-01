@@ -4,6 +4,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_application_2/models/product.dart';
 import 'package:flutter_application_2/widgets/product_card.dart';
 import 'package:flutter_application_2/utils/seeder.dart';
+import 'package:flutter_application_2/core/theme/theme_provider.dart';
+import 'package:provider/provider.dart';
 
 class ProductsListScreen extends StatelessWidget {
   const ProductsListScreen({Key? key}) : super(key: key);
@@ -15,17 +17,30 @@ class ProductsListScreen extends StatelessWidget {
     final int crossAxisCount = screenWidth > 900 ? 4 : (screenWidth > 600 ? 3 : 2);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F4F7),
       appBar: AppBar(
         title: const Text(
           'المنتجات المتاحة 🛒',
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
         ),
         centerTitle: true,
-        backgroundColor: Colors.white,
-        foregroundColor: const Color(0xFF181818),
         elevation: 0.5,
         actions: [
+          Consumer<ThemeProvider>(
+            builder: (context, themeProvider, child) {
+              return IconButton(
+                icon: Icon(
+                  themeProvider.isDarkMode
+                      ? Icons.light_mode
+                      : Icons.dark_mode_outlined,
+                  color: const Color(0xFFFF6A00),
+                ),
+                tooltip: themeProvider.isDarkMode ? 'الوضع الفاتح' : 'الوضع الداكن',
+                onPressed: () {
+                  themeProvider.toggleTheme();
+                },
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.logout_outlined, color: Colors.redAccent),
             tooltip: 'تسجيل الخروج',
