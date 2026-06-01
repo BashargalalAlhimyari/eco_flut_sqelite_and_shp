@@ -18,7 +18,7 @@ class ProductModelAdapter extends TypeAdapter<ProductModel> {
     };
     
     return ProductModel(
-      id: fields[0] as int,
+      id: fields[0].toString(), 
       title: fields[1] as String,
       price: fields[2] as double,
       description: fields[3] as String,
@@ -30,7 +30,7 @@ class ProductModelAdapter extends TypeAdapter<ProductModel> {
   @override
   void write(BinaryWriter writer, ProductModel obj) {
     writer
-      ..writeByte(6) // عدد الحقول
+      ..writeByte(6)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)

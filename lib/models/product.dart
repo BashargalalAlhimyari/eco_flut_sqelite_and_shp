@@ -1,12 +1,11 @@
 import 'package:hive/hive.dart';
 
-// هذا السطر مهم جداً لتوليد الملف التلقائي (سيظهر خطأ حتى تشغل الأمر في الـ Terminal)
 part 'product_model.g.dart'; 
 
-@HiveType(typeId: 0) // رقم فريد لكل موديل
+@HiveType(typeId: 0)
 class ProductModel {
   @HiveField(0)
-  final int id;
+  final String id;
 
   @HiveField(1)
   final String title;
@@ -32,15 +31,35 @@ class ProductModel {
     required this.image,
   });
 
-  // دوال التحويل من JSON كما هي لديك سابقاً
-  factory ProductModel.fromJson(Map<String, dynamic> json) {
+  // من Firestore إلى كائن Dart
+  factory ProductModel.fromDoc(Map<String, dynamic> doc, String docId) {
     return ProductModel(
-      id: json['id'],
-      title: json['title'],
-      price: (json['price'] as num).toDouble(),
-      description: json['description'],
-      category: json['category'],
-      image: json['image'],
+      id: docId,
+      title: doc['title'] ?? doc['name'] ?? '', 
+      price: _parsePrice(doc['price']),
+      description: doc['description'] ?? '',
+      category: doc['category'] ?? '',
+      image: doc['image'] ?? '',
     );
+  }
+
+  static double _parsePrice(dynamic price) {
+    if (price == null) return 0.0;
+    if (price is num) return price.toDouble();
+    if (price is String) {
+      return double.tryParse(price) ?? 0.0;
+    }
+    return 0.0;
+  }
+
+  // من كائن Dart إلى Firestore
+  Map<String, dynamic> toMap() {
+    return {
+      'title': title,
+      'price': price,
+      'description': description,
+      'category': category,
+      'image': image,
+    };
   }
 }

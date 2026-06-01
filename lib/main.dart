@@ -1,25 +1,28 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_application_2/core/di/service_locater.dart' as di;
 import 'package:flutter_application_2/core/theme/app_theme.dart';
 import 'package:flutter_application_2/core/theme/theme_provider.dart';
 import 'package:flutter_application_2/models/product.dart';
 import 'package:flutter_application_2/providers/cart_provider.dart';
-import 'package:flutter_application_2/providers/category_provider.dart';
 import 'package:flutter_application_2/providers/favorite_provider.dart';
-import 'package:flutter_application_2/providers/product_provider.dart';
 import 'package:flutter_application_2/screens/main_screen.dart';
+import 'package:flutter_application_2/screens/login_screen.dart';
 import 'package:hive/hive.dart' show Hive;
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'firebase_options.dart';
 
 void main() async {
-  // 1. التأكد من تهيئة روابط فلاتر
   WidgetsFlutterBinding.ensureInitialized();
 
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   await Hive.initFlutter();
   
-   Hive.registerAdapter(ProductModelAdapter()); 
+  Hive.registerAdapter(ProductModelAdapter()); 
   
   await di.init();
 
@@ -33,10 +36,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        // استخدام sl() لجلب النسخ المهيأة مسبقاً من الـ Service Locator
         ChangeNotifierProvider(create: (_) => di.sl<ThemeProvider>()),
-        ChangeNotifierProvider(create: (_) => di.sl<ProductsProvider>()),
-        ChangeNotifierProvider(create: (_) => di.sl<CategoriesProvider>()),
         ChangeNotifierProvider(create: (_) => di.sl<CartProvider>()),
         ChangeNotifierProvider(create: (_) => di.sl<FavoritesProvider>()),
       ],
@@ -46,12 +46,10 @@ class MyApp extends StatelessWidget {
             title: 'متجر الجنييد الذكي',
             debugShowCheckedModeBanner: false,
             
-            // إعدادات الثيم
             theme: AppTheme.lightTheme,
             darkTheme: AppTheme.darkTheme,
             themeMode: themeProvider.themeMode,
 
-            // إعدادات اللغة والاتجاه (RTL)
             builder: (context, child) {
               return Directionality(
                 textDirection: TextDirection.rtl,
@@ -59,7 +57,20 @@ class MyApp extends StatelessWidget {
               );
             },
             
-            home: const MainScreen(),
+            home: StreamBuilder<User?>(
+              stream: FirebaseAuth.instance.authStateChanges(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Scaffold(
+                    body: Center(child: CircularProgressIndicator()),
+                  );
+                }
+                if (snapshot.hasData) {
+                  return const MainScreen();
+                }
+                return const LoginScreen();
+              },
+            ),
           );
         },
       ),

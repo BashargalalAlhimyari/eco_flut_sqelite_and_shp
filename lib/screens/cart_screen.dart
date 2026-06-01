@@ -7,9 +7,8 @@ class CartScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Scaffold(
+      backgroundColor: const Color(0xFFF4F4F7),
       appBar: AppBar(
         title: const Text('سلة المشتريات'),
         centerTitle: true,
@@ -19,43 +18,46 @@ class CartScreen extends StatelessWidget {
           final cartItems = cartProvider.cartItems;
 
           if (cartItems.isEmpty) {
-            return _buildEmptyCart(theme);
+            return _buildEmptyCart(context);
           }
 
-          return Column(
-            children: [
-              Expanded(
-                child: ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: cartItems.length,
-                  itemBuilder: (context, index) {
-                    final product = cartItems[index];
-                    return _buildCartItem(context, product, cartProvider, theme);
-                  },
+          return Directionality(
+            textDirection: TextDirection.rtl,
+            child: Column(
+              children: [
+                Expanded(
+                  child: ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: cartItems.length,
+                    itemBuilder: (context, index) {
+                      final product = cartItems[index];
+                      return _buildCartItem(context, product, cartProvider);
+                    },
+                  ),
                 ),
-              ),
-              _buildCheckoutSection(context, cartProvider, theme),
-            ],
+                _buildCheckoutSection(context, cartProvider),
+              ],
+            ),
           );
         },
       ),
     );
   }
 
-  // بناء عنصر واحد في السلة
-  Widget _buildCartItem(BuildContext context, dynamic product, CartProvider provider, ThemeData theme) {
+  Widget _buildCartItem(BuildContext context, dynamic product, CartProvider provider) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: theme.cardColor,
-        borderRadius: BorderRadius.circular(16),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE5E5E5), width: 0.8),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          )
+            color: Colors.black.withOpacity(0.02),
+            blurRadius: 6,
+            offset: const Offset(0, 3),
+          ),
         ],
       ),
       child: Row(
@@ -67,11 +69,12 @@ class CartScreen extends StatelessWidget {
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: const Color(0xFFF0F0F0), width: 1),
             ),
             child: Image.network(product.image, fit: BoxFit.contain),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 12),
           // تفاصيل المنتج
           Expanded(
             child: Column(
@@ -79,29 +82,44 @@ class CartScreen extends StatelessWidget {
               children: [
                 Text(
                   product.title,
-                  maxLines: 1,
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF181818),
+                  ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 6),
                 Text(
                   '${product.price} \$',
-                  style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    color: Color(0xFFFF6A00),
+                    fontWeight: FontWeight.w800,
+                    fontSize: 15,
+                  ),
                 ),
                 const SizedBox(height: 8),
-                // التحكم في الكمية (إذا أضفت حقل quantity في الموديل)
+                // التحكم بالكمية الافتراضية
                 Row(
                   children: [
                     _buildQuantityBtn(Icons.remove, () {
-                      // هنا تضع منطق نقص الكمية
-                    }, theme),
+                      // منطق إنقاص افتراضي أو إرشاد
+                    }),
                     const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 12),
-                      child: Text('1', style: TextStyle(fontWeight: FontWeight.bold)),
+                      padding: EdgeInsets.symmetric(horizontal: 14),
+                      child: Text(
+                        '1',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                          color: Color(0xFF181818),
+                        ),
+                      ),
                     ),
                     _buildQuantityBtn(Icons.add, () {
-                      // هنا تضع منطق زيادة الكمية
-                    }, theme),
+                      // منطق زيادة افتراضي أو إرشاد
+                    }),
                   ],
                 ),
               ],
@@ -109,37 +127,59 @@ class CartScreen extends StatelessWidget {
           ),
           // زر الحذف
           IconButton(
-            icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
-            onPressed: () => provider.removeFromCart(product.id),
+            icon: const Icon(Icons.delete_outline, color: Color(0xFFFA3E3E)),
+            onPressed: () {
+              provider.removeFromCart(product.id);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: const Directionality(
+                    textDirection: TextDirection.rtl,
+                    child: Text("تمت إزالة المنتج من السلة"),
+                  ),
+                  backgroundColor: const Color(0xFFFA3E3E),
+                  duration: const Duration(milliseconds: 700),
+                  behavior: SnackBarBehavior.floating,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              );
+            },
           ),
         ],
       ),
     );
   }
 
-  // زر زيادة ونقص الكمية
-  Widget _buildQuantityBtn(IconData icon, VoidCallback onTap, ThemeData theme) {
+  Widget _buildQuantityBtn(IconData icon, VoidCallback onTap) {
     return InkWell(
       onTap: onTap,
+      borderRadius: BorderRadius.circular(6),
       child: Container(
         padding: const EdgeInsets.all(4),
         decoration: BoxDecoration(
-          border: Border.all(color: theme.dividerColor),
+          color: const Color(0xFFF4F4F7),
           borderRadius: BorderRadius.circular(6),
+          border: Border.all(color: const Color(0xFFE0E0E0), width: 0.8),
         ),
-        child: Icon(icon, size: 16),
+        child: Icon(icon, size: 14, color: const Color(0xFF555555)),
       ),
     );
   }
 
-  // قسم الحساب النهائي
-  Widget _buildCheckoutSection(BuildContext context, CartProvider provider, ThemeData theme) {
+  Widget _buildCheckoutSection(BuildContext context, CartProvider provider) {
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: theme.cardColor,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
-        boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 20)],
+        color: Colors.white,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 10,
+            offset: const Offset(0, -3),
+          ),
+        ],
       ),
       child: SafeArea(
         child: Column(
@@ -148,30 +188,55 @@ class CartScreen extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('الإجمالي المستحق', style: theme.textTheme.titleMedium),
+                const Text(
+                  'المجموع الكلي',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF181818),
+                  ),
+                ),
                 Text(
                   '${provider.totalPrice.toStringAsFixed(2)} \$',
-                  style: theme.textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: theme.colorScheme.primary,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 20,
+                    color: Color(0xFFFF6A00),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
             SizedBox(
               width: double.infinity,
-              height: 55,
+              height: 50,
               child: ElevatedButton(
                 onPressed: () {
-                  // منطق الدفع أو إرسال الطلب
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Directionality(
+                        textDirection: TextDirection.rtl,
+                        child: Text("تم إرسال الطلب بنجاح! شكراً لك."),
+                      ),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
                 },
                 style: ElevatedButton.styleFrom(
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  backgroundColor: theme.colorScheme.primary,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(25),
+                  ),
+                  backgroundColor: const Color(0xFFFF6A00),
                   foregroundColor: Colors.white,
+                  elevation: 0,
                 ),
-                child: const Text('إتمام عملية الشراء', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                child: const Text(
+                  'إتمام الشراء الآن',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
             ),
           ],
@@ -180,18 +245,66 @@ class CartScreen extends StatelessWidget {
     );
   }
 
-  // واجهة السلة الفارغة
-  Widget _buildEmptyCart(ThemeData theme) {
+  Widget _buildEmptyCart(BuildContext context) {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.shopping_cart_outlined, size: 100, color: theme.hintColor.withOpacity(0.3)),
-          const SizedBox(height: 20),
-          const Text('سلتك لا تزال فارغة!', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 10),
-          const Text('أضف بعض المنتجات لتبدأ التسوق'),
-        ],
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.shopping_cart_outlined,
+                size: 80,
+                color: Color(0xFFC0C0C0),
+              ),
+            ),
+            const SizedBox(height: 24),
+            const Text(
+              'سلة المشتريات فارغة!',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF181818),
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'تصفح المنتجات وأضف ما يعجبك لتجده هنا.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey,
+              ),
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: 200,
+              height: 44,
+              child: OutlinedButton(
+                onPressed: () {
+                  // العودة للتسوق
+                },
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: Color(0xFFFF6A00)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(22),
+                  ),
+                  foregroundColor: const Color(0xFFFF6A00),
+                ),
+                child: const Text(
+                  'تسوق الآن',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

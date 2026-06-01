@@ -77,13 +77,13 @@ class AppTheme {
       ),
 
       appBarTheme: const AppBarTheme(
-        backgroundColor: AppColors.primary,
-        elevation: 0,
+        backgroundColor: AppColors.lightSurface,
+        elevation: 0.5,
         centerTitle: true,
-        iconTheme: IconThemeData(color: Colors.white),
+        iconTheme: IconThemeData(color: AppColors.lightTextPrimary),
         titleTextStyle: TextStyle(
-          color: Colors.white,
-          fontSize: 20,
+          color: AppColors.lightTextPrimary,
+          fontSize: 18,
           fontWeight: FontWeight.bold,
         ),
       ),
